@@ -28,6 +28,8 @@
                                             <tr>
                                                 <th>#</th>
                                                 <th>Amount</th>
+                                                <th>Order ID</th>
+                                                <th>User Name</th>
                                                 <th>Credit/Debit</th>
                                                 <th>Created At</th>
                                             </tr>
@@ -42,6 +44,13 @@
                                                     <td>
                                                         {{ 'PKR ' . $row->amount }}
                                                     </td>
+                                                     <td>
+                                                        {{ ($row->order) ? $row->order->order_no : "NULL" }}
+                                                    </td>
+                                                      <td>
+                                                        {{ ($row->user) ? $row->user->name : "NULL" }}
+                                                    </td>
+                                                   
                                                     <td>
                                                         @if ($row->status == 1)
                                                             <div class="badge badge-success">Credit</div>
