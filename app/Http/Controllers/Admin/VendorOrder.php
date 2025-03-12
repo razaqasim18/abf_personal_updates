@@ -250,9 +250,11 @@ class VendorOrder extends Controller
                     'user_id' => $order->seller_id,
                     'vendor_id' => $order->vendor_id,
                     'amount' => $order->vendor_amount,
+                    'vendor_order_id' => $order->id,
+                    'buyyer_id' => $order->user_id,
                     'is_gift' => 0,
                     'status' => 1,
-                    'detail' => 'Amount received from ' . $order->order . " handle by admin",
+                    'detail' => 'Amount received from ' . $order->order_no . " handle by admin",
                 ]);
             }
             

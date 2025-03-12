@@ -16,5 +16,7 @@ class VendorWalletTransaction extends Model
         'is_gift',
         'status',
         'detail',
+        'vendor_order_id',
+        'buyyer_id',
     ];
 }

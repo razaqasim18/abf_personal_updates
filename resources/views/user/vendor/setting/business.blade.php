@@ -128,10 +128,11 @@
                                         <div class="form-group col-md-6">
                                             <label for="is_order_handle_by_admin">Order Handle By</label>
                                             <span class="text-danger">*</span>
-                                            <select class="form-control select" name="is_order_handle_by_admin">
-                                                <option value="0" @if($vendor->is_order_handle_by_admin == "0") selected @endif>Self</option>
-                                                <option value="1" @if($vendor->is_order_handle_by_admin == "1") selected @endif>Admin</option>
-                                            </select>
+                                          <input type="text" class="form-control" readonly name="is_order_handle_by_admin" id="is_order_handle_by_admin" value="{{ isset($vendor->is_order_handle_by_admin) && $vendor->is_order_handle_by_admin == '1' ? 'Admin' : 'Self' }}">
+                                            <!--<select class="form-control select" readonly disbaled name="is_order_handle_by_admin">-->
+                                            <!--    <option value="0" @if($vendor->is_order_handle_by_admin == "0") selected @endif>Self</option>-->
+                                            <!--    <option value="1" @if($vendor->is_order_handle_by_admin == "1") selected @endif>Admin</option>-->
+                                            <!--</select>-->
                                             @error('is_order_handle_by_admin')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror

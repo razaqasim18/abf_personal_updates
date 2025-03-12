@@ -61,7 +61,7 @@ class VendorSetting extends Controller
         $vendor->shop_card =  $shop_card;
         $vendor->business_address = $request->business_address;
         $vendor->delivery_charges = $request->delivery_charges;
-        $vendor->is_order_handle_by_admin = $request->is_order_handle_by_admin;
+        // $vendor->is_order_handle_by_admin = $request->is_order_handle_by_admin;
         if ($vendor->save()) {
             return redirect()
                 ->route('vendor.setting.business.load')
