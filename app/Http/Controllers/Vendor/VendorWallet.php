@@ -15,8 +15,10 @@ class VendorWallet extends Controller
         $wallet =  ModelsVendorWallet::where('user_id', Auth::user()->id)
             ->where('vendor_id', Auth::user()->vendor->id)
             ->first();
+            
         $wallettransection =  VendorWalletTransaction::where('user_id', Auth::user()->id)
             ->where('vendor_id', Auth::user()->vendor->id)
+            ->orderBy("id","DESC")
             ->get();
 
         return view('user.vendor.wallet.index', [

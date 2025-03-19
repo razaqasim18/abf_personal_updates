@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('vendor_id');
             $table->double('amount', 100, 2);
-            $table->tinyInteger('status')->default("1")->comment("	0 deducted,1 added,2 commission");
+            $table->tinyInteger('status')->default("1")->comment("0 deducted,1 added,2 commission");
             $table->string('detail')->nullable(true);
             $table->boolean('is_gift')->default("0")->comment("1 yes, 0 not");
             $table->foreign('wallet_id')->references('id')->on('wallets')->onDelete('cascade')->onUpdate('cascade');
