@@ -53,14 +53,7 @@ Route::get('/refresh-csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 })->name("refresh-csrf-token");
 
-Route::get('/check', function () {
-    $referred_points = SettingHelper::getSettingValueBySLug('referred_points');
-    if($referred_points){
-        echo "true";
-    } else {
-        echo "false";
-    }
-});
+Route::get('/check', function () {});
 
 Route::get('/user-psp/{id}', function ($userid) {
     //psp rewad
