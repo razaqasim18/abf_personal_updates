@@ -45,7 +45,7 @@
                     <div class="col-12 col-md-12 col-lg-12 banner">
                         <div style="display:block">
 
-                            @if (!count($dashboardbanner))
+                            @if (!$dashboardbanner)
                                 <!--banner-->
                                 <img alt="image" src="{{ asset('images/user-panel-banner-original.jpeg') }}" class=""
                                     width="auto" height="auto" style="max-width:100%;">
@@ -54,7 +54,7 @@
 
                                     @php $count = 1 @endphp
                                     <ol class="carousel-indicators">
-                                        @for ($i = 0; $i < count($dashboardbanner); $i++)
+                                        @for ($i = 0; $i < count($dashboardbanner->getMedia('vendor_dashboard_slider')); $i++)
                                             <li data-target="#carouselExampleIndicators2"
                                                 data-slide-to="{{ $count }}"
                                                 @if ($count == 1) class="active" @endif></li>
@@ -65,9 +65,9 @@
 
                                     <div class="carousel-inner">
                                         @php $counter = 1 @endphp
-                                        @foreach ($dashboardbanner as $image)
+                                        @foreach ($dashboardbanner->getMedia('vendor_dashboard_slider') as $image)
                                             <div class="carousel-item @if ($counter == 1) active @endif">
-                                                <img class="d-block w-100" src="{{ $image->getFirstMediaUrl('images') }}"
+                                                <img class="d-block w-100" src="{{ $image->getUrl() }}"
                                                     alt="{{ $counter }}" style="max-width:100%;">
                                             </div>
                                             @php $counter++; @endphp

@@ -10,6 +10,8 @@
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
+
+                        {{-- homepage banner --}}
                         <div class="card">
                             <div class="card-header">
                                 <h4>Website Banner Setting</h4>
@@ -38,15 +40,14 @@
                                     @if (!empty($banner))
                                         <div class="col-md-12">
                                             <div class="row gutters-sm">
-                                                @foreach ($banner as $image)
+                                                @foreach ($banner->getMedia('homepage_slider') as $image)
                                                     <div class="col-md-3 col-sm-3 text-center">
                                                         <label class="imagecheck mb-4">
                                                             {{-- <input name="imagecheck" type="checkbox" value="1"
                                                             class="imagecheck-input" /> --}}
                                                             {{-- <span class="imagecheck-figure"> --}}
-                                                            <img src="{{ $image->getFirstMediaUrl('images') }}"
-                                                                alt="{{ $image->name }}" class="imagecheck-image d-flex"
-                                                                width="100px"><br />
+                                                            <img src="{{ $image->getUrl() }}" alt="{{ $image->name }}"
+                                                                class="imagecheck-image d-flex" width="100px"><br />
                                                             <button type="button" class="btn btn-danger" id="removeImage"
                                                                 data-mediaid="{{ $image->id }}"
                                                                 data-bannerid="{{ $image->id }}">
@@ -67,6 +68,7 @@
                             </div>
                         </div>
 
+                        {{-- other banner --}}
                         <div class="card">
                             <div class="card-header">
                                 <h4>Website Shop Banner Setting</h4>
@@ -78,12 +80,10 @@
                                     @if (session('othersuccess'))
                                         <div class="alert alert-success">{{ session('othersuccess') }}</div>
                                     @endif
-                                    @if (session('othererror'))
-                                        <div class="alert alert-danger">{{ session('othererror') }}</div>
-                                    @endif
+
                                     <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">Shop Banners</label>
-                                        <div class="col-sm-9">
+                                        <div class="col-sm-6">
                                             <input type="file" accept="image/png, image/gif, image/jpeg"
                                                 class="form-control" name="shop_banner" id="shop_banner"
                                                 value="{{ old('shop_banner') }}" accept="image/png, image/gif, image/jpeg">
@@ -93,10 +93,29 @@
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
+                                        <div class="col-sm-3">
+                                            @if ($shopbanner && $shopbanner->getFirstMediaUrl('home_page_shop_banner'))
+                                                <img src="{{ $shopbanner->getFirstMediaUrl('home_page_shop_banner') }}"
+                                                    alt="Shop Banner" class="imagecheck-image d-flex" width="100px"><br />
+
+                                                @php
+                                                    $mediaItem = $shopbanner->getFirstMedia('home_page_shop_banner');
+                                                @endphp
+
+                                                @if ($mediaItem)
+                                                    <button type="button" class="btn btn-danger" id="removeImage"
+                                                        data-mediaid="{{ $mediaItem->id }}"
+                                                        data-bannerid="{{ $shopbanner->id }}">
+                                                        <i class="fas fa-trash"></i> Remove
+                                                    </button>
+                                                @endif
+                                            @endif
+
+                                        </div>
                                     </div>
                                     <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">Other Brand Banners</label>
-                                        <div class="col-sm-9">
+                                        <div class="col-sm-6">
                                             <input type="file" accept="image/png, image/gif, image/jpeg"
                                                 class="form-control" name="other_brand_banner" id="other_brand_banner"
                                                 value="{{ old('other_brand_banner') }}"
@@ -107,10 +126,32 @@
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
+                                        <div class="col-sm-3">
+                                            @if ($otherbanner && $otherbanner->getFirstMediaUrl('home_page_other_brand_banner'))
+                                                <img src="{{ $otherbanner->getFirstMediaUrl('home_page_other_brand_banner') }}"
+                                                    alt="other brand Banner" class="imagecheck-image d-flex"
+                                                    width="100px"><br />
+
+                                                @php
+                                                    $mediaItem = $otherbanner->getFirstMedia(
+                                                        'home_page_other_brand_banner',
+                                                    );
+                                                @endphp
+
+                                                @if ($mediaItem)
+                                                    <button type="button" class="btn btn-danger" id="removeImage"
+                                                        data-mediaid="{{ $mediaItem->id }}"
+                                                        data-bannerid="{{ $otherbanner->id }}">
+                                                        <i class="fas fa-trash"></i> Remove
+                                                    </button>
+                                                @endif
+                                            @endif
+
+                                        </div>
                                     </div>
                                     <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">Customized Banners</label>
-                                        <div class="col-sm-9">
+                                        <div class="col-sm-6">
                                             <input type="file" accept="image/png, image/gif, image/jpeg"
                                                 class="form-control" name="customize_banner" id="customize_banner"
                                                 value="{{ old('customize_banner') }}"
@@ -120,6 +161,28 @@
                                             @error('customize_banner')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
+                                        </div>
+                                        <div class="col-sm-3">
+                                            @if ($customizebanner && $customizebanner->getFirstMediaUrl('home_page_customize_banner'))
+                                                <img src="{{ $customizebanner->getFirstMediaUrl('home_page_customize_banner') }}"
+                                                    alt="customize Banner" class="imagecheck-image d-flex"
+                                                    width="100px"><br />
+
+                                                @php
+                                                    $mediaItem = $customizebanner->getFirstMedia(
+                                                        'home_page_customize_banner',
+                                                    );
+                                                @endphp
+
+                                                @if ($mediaItem)
+                                                    <button type="button" class="btn btn-danger" id="removeImage"
+                                                        data-mediaid="{{ $mediaItem->id }}"
+                                                        data-bannerid="{{ $customizebanner->id }}">
+                                                        <i class="fas fa-trash"></i> Remove
+                                                    </button>
+                                                @endif
+                                            @endif
+
                                         </div>
                                     </div>
 
@@ -131,6 +194,7 @@
                             </div>
                         </div>
 
+                        {{-- Dashboard banner --}}
                         <div class="card">
                             <div class="card-header">
                                 <h4>Dashboard Banner Setting</h4>
@@ -142,13 +206,10 @@
                                     @if (session('dashboardsuccess'))
                                         <div class="alert alert-success">{{ session('dashboardsuccess') }}</div>
                                     @endif
-                                    @if (session('dashboardsuccess'))
-                                        <div class="alert alert-danger">{{ session('dashboarderror') }}</div>
-                                    @endif
 
                                     <div class="form-row mb-3">
                                         <div class="form-group col-md-12">
-                                            <label>Banner Image</label>
+                                            <label>DashBoard Banner Image</label>
                                             <input id="files" name="files[]" type="file" class="form-control"
                                                 accept="image/png, image/gif, image/jpeg, image/jpg" multiple>
                                         </div>
@@ -159,15 +220,14 @@
                                     @if (!empty($dashboardbanner))
                                         <div class="col-md-12">
                                             <div class="row gutters-sm">
-                                                @foreach ($dashboardbanner as $image)
+                                                @foreach ($dashboardbanner->getMedia('dashboard_slider') as $image)
                                                     <div class="col-md-3 col-sm-3 text-center">
                                                         <label class="imagecheck mb-4">
                                                             {{-- <input name="imagecheck" type="checkbox" value="1"
                                                             class="imagecheck-input" /> --}}
                                                             {{-- <span class="imagecheck-figure"> --}}
-                                                            <img src="{{ $image->getFirstMediaUrl('images') }}"
-                                                                alt="{{ $image->name }}" class="imagecheck-image d-flex"
-                                                                width="100px"><br />
+                                                            <img src="{{ $image->getUrl() }}" alt="{{ $image->name }}"
+                                                                class="imagecheck-image d-flex" width="100px"><br />
                                                             <button type="button" class="btn btn-danger"
                                                                 id="removeImage" data-mediaid="{{ $image->id }}"
                                                                 data-bannerid="{{ $image->id }}">
@@ -197,16 +257,14 @@
                                 <form class="form-horizontal form-bordered" method="POST" enctype="multipart/form-data"
                                     action="{{ route('admin.setting.vendor.banner.save') }}">
                                     @csrf
-                                    @if (session('success'))
-                                        <div class="alert alert-success">{{ session('success') }}</div>
+                                    @if (session('vendorsuccess'))
+                                        <div class="alert alert-success">{{ session('vendorsuccess') }}</div>
                                     @endif
-                                    @if (session('error'))
-                                        <div class="alert alert-danger">{{ session('error') }}</div>
-                                    @endif
+
 
                                     <div class="form-row mb-3">
                                         <div class="form-group col-md-12">
-                                            <label>Banner Image</label>
+                                            <label>Vendor Banner Image</label>
                                             <input id="file" name="file[]" type="file" class="form-control"
                                                 accept="image/png, image/gif, image/jpeg, image/jpg" multiple>
                                         </div>
@@ -214,18 +272,17 @@
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                    @if (!empty($banner))
+                                    @if (!empty($vendorbanner))
                                         <div class="col-md-12">
                                             <div class="row gutters-sm">
-                                                @foreach ($vendorbanner as $image)
+                                                @foreach ($vendorbanner->getMedia('vendor_dashboard_slider') as $image)
                                                     <div class="col-md-3 col-sm-3 text-center">
                                                         <label class="imagecheck mb-4">
                                                             {{-- <input name="imagecheck" type="checkbox" value="1"
                                                             class="imagecheck-input" /> --}}
                                                             {{-- <span class="imagecheck-figure"> --}}
-                                                            <img src="{{ $image->getFirstMediaUrl('images') }}"
-                                                                alt="{{ $image->name }}" class="imagecheck-image d-flex"
-                                                                width="100px"><br />
+                                                            <img src="{{ $image->getUrl() }}" alt="{{ $image->name }}"
+                                                                class="imagecheck-image d-flex" width="100px"><br />
                                                             <button type="button" class="btn btn-danger"
                                                                 id="removeImage" data-mediaid="{{ $image->id }}"
                                                                 data-bannerid="{{ $image->id }}">
@@ -258,7 +315,6 @@
 
             $("body").on("click touchstart", "button#removeImage", function() {
                 var mediaid = $(this).data("mediaid");
-                var bannerid = $(this).data("bannerid");
                 swal({
                         title: 'Are you sure?',
                         text: "Once deleted, you will not be able to recover",
@@ -270,7 +326,7 @@
                         if (willDelete) {
                             var token = $("meta[name='csrf-token']").attr("content");
                             var url = '{{ url('/admin/setting/banner/delete/media') }}' + '/' +
-                                bannerid;
+                                mediaid;
                             $.ajax({
                                 url: url,
                                 type: 'DELETE',

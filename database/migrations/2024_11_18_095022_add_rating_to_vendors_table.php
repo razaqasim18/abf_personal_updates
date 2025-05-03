@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::table('vendors', function (Blueprint $table) {
             //
-            $table->float("rating", 10,2)->default("0.00")->after('delivery_charges');
-             $table->float("outstanding_amount", 100, 2)->default("0.00")->after('delivery_charges');
+            $table->decimal("rating", 5, 2)->default(0.00)->after('delivery_charges');
+            $table->decimal("outstanding_amount", 15, 2)->default(0.00)->after('delivery_charges');
         });
     }
 

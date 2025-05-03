@@ -116,259 +116,6 @@ class CartHelper
         return $newepin;
     }
 
-    // old function
-    public static function normalOrder($request)
-    {
-        $order_no = self::createNewOrderno();
-        DB::beginTransaction();
-        $order = new Order();
-        $order->order_no = $order_no;
-        $order->user_id = Auth::guard('web')->user()->id;
-        $order->points = $request->subpoint;
-        $order->weight = $request->totalweight;
-        $order->subtotal = $request->subtotal;
-        $order->shippingcharges = $request->shippingcharges;
-        $order->total_bill = $request->totalpay;
-        $order->discount = $request->discount;
-        $order->payment_by = $request->payment_by;
-        $orderresponse = $order->save();
-
-        // normal
-        if (
-            \Cart::session('normal')
-            ->getContent()
-            ->count()
-        ) {
-            foreach (\Cart::session('normal')->getContent() as $item) {
-                $orderdetail[] = [
-                    'order_id' => $order->id,
-                    'product_id' => $item->id,
-                    'product' => $item->name,
-                    'weight' => $item->attributes->product_weight,
-                    'quantity' => $item->quantity,
-                    'points' => $item->attributes->product_points,
-                    'price' => $item->price,
-                    'product_type' =>  $item->attributes->product_type,
-                    'product_is_coupon' =>  $item->attributes->product_is_coupon,
-                    'product_is_coupon_used' =>  $item->attributes->product_is_coupon_used,
-                ];
-                $product = Product::find($item->id);
-                $product->stock = $product->stock - $item->quantity;
-                if ($product->stock <= 0) {
-                    $product->in_stock = 0;
-                }
-                $product->save();
-            }
-        }
-
-        // discount
-        if (
-            \Cart::session('discount')
-            ->getContent()
-            ->count()
-        ) {
-            foreach (\Cart::session('discount')->getContent() as $item) {
-                $orderdetail[] = [
-                    'order_id' => $order->id,
-                    'product_id' => $item->id,
-                    'product' => $item->name,
-                    'weight' => $item->attributes->product_weight,
-                    'quantity' => $item->quantity,
-                    'points' => $item->attributes->product_points,
-                    'price' => $item->price,
-                    'product_type' =>  $item->attributes->product_type,
-                    'product_is_coupon' =>  $item->attributes->product_is_coupon,
-                    'product_is_coupon_used' =>  $item->attributes->product_is_coupon_used,
-                ];
-                $product = Product::find($item->id);
-                $product->stock = $product->stock - $item->quantity;
-                if ($product->stock <= 0) {
-                    $product->in_stock = 0;
-                }
-                $product->save();
-
-                $orderdiscount = new OrderDiscount();
-                $orderdiscount->user_id = Auth::guard('web')->user()->id;
-                $orderdiscount->order_id = $order->id;
-                $orderdiscount->product_id = $item->id;
-                $orderdiscount->product_from_table = $item->attributes->product_type;
-                $orderdiscount->save();
-            }
-        }
-
-        $orderdetailresponse = OrderDetail::insert($orderdetail);
-
-        $ordershippindetail = new  OrderShippingDetail();
-        $ordershippindetail->order_id = $order->id;
-        $ordershippindetail->name = $request->name;
-        $ordershippindetail->email = $request->email;
-        $ordershippindetail->phone = $request->phone;
-        $ordershippindetail->address = $request->address;
-        $ordershippindetail->shipping_address = $request->shipping_address;
-        $ordershippindetail->other_information = $request->other;
-        $ordershippindetail->city_id = $request->city;
-        $ordershippindetail->street = $request->street;
-        $ordershippindetailresponse = $ordershippindetail->save();
-
-        $walletresponse = true;
-        if ($request->payment_by == '1') {
-            //if user selected payment by wallet
-            $walletresponse = CustomHelper::orderWalletTrasection(Auth::guard('web')->user()->id, $request->totalpay);
-        }
-        if ($request->payment_by == '2') {
-            //if user selected payment by gift
-            $walletresponse = CustomHelper::orderWalletGiftTrasection(Auth::guard('web')->user()->id, $request->totalpay);
-        }
-        if ($orderresponse && $orderdetailresponse && $ordershippindetailresponse && $walletresponse) {
-
-            DB::commit();
-            \Cart::session('normal')->clear();
-            \Cart::session('discount')->clear();
-            // Cart::
-            $msg = 'New order has been placed';
-            $type = 4;
-            $link = 'admin/order/detail/' . $order->id;
-            $detail = 'New order is placed with order no#' . $order_no;
-            $admin = Admin::find(1);
-            $adminnotification = new AdminNotification($msg, $type, $link, $detail);
-            Notification::send($admin, $adminnotification);
-            Session::forget('coupon_discount');
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
-    // old function
-    public static function vendorOrder($request)
-    {
-
-        // Get the content of the cart for the 'vendor' session
-        $cartContent = \Cart::session('vendor')->getContent();
-
-        // Group the items by the product_seller_id attribute
-        $groupedBySeller = $cartContent->groupBy(function ($item) {
-            return $item->attributes->product_seller_id;
-        });
-        //
-        DB::beginTransaction();
-        try {
-            foreach ($groupedBySeller as $sellerId => $items) {
-                $price = $weight  = $points = $shipcharges = $discount = 0;
-                foreach ($items as $item) {
-                    $price = $price + $item->attributes->product_price;
-                    $weight = $weight + $item->attributes->product_weight;
-                    $points = $points + $item->attributes->product_points;
-                    $discount = $discount + $item->attributes->product_discount;
-
-                    if ($item->attributes->product_type) {
-                        $charges =  SettingHelper::getSettingValueBySLug('customized_shipping_charges');
-                        $shipcharges = ceil($weight) * $charges;
-                    } else {
-                        $charges = SettingHelper::getSettingValueBySLug('shipping_charges');
-                        $shipcharges = ceil($weight) * $charges;
-                    }
-                }
-                $total_bill = ($price + $shipcharges) - $discount;
-                $vendor = VendorHelper::getVendorByid($sellerId);
-                $comission = ($vendor->is_order_handle_by_admin) ? SettingHelper::getSettingValueBySLug('vendor_order_handle_by_admin_comission')  : SettingHelper::getSettingValueBySLug('vendor_order_commission');
-                $commission_amount = 0;
-                $vendor_amount = $total_bill;
-                if ($comission) {
-                    $commission_amount = $total_bill * ($comission / 100);
-                    $vendor_amount = ($total_bill - ($total_bill * ($comission / 100)));
-                }
-                $order_no = self::createNewOrderno();
-                $order = new VendorOrder();
-                $order->order_no = $order_no;
-                $order->user_id = Auth::guard('web')->user()->id;
-                $order->seller_id =  $sellerId;
-                $order->vendor_id = $vendor->id;
-                $order->points =  $points;
-                $order->weight = $weight;
-                $order->subtotal = $price;
-                $order->shippingcharges = $shipcharges;
-                $order->total_bill = $total_bill;
-                $order->vendor_amount = $vendor_amount;
-                $order->commission_amount = $commission_amount;
-                $order->commission = $comission;
-                $order->is_order_handle_by_admin = $vendor->is_order_handle_by_admin;
-                $order->discount = $discount;
-                $order->payment_by = $request->payment_by;
-                $order->save();
-
-                foreach ($items as $item) {
-                    $orderdetail = [
-                        'vendor_order_id' => $order->id,
-                        'vendor_product_id' => $item->id,
-                        'product' => $item->name,
-                        'weight' => $item->attributes->product_weight,
-                        'quantity' => $item->quantity,
-                        'points' => $item->attributes->product_points,
-                        'price' => $item->price,
-                        // 'product_type' =>  $item->attributes->product_type,
-                        // 'product_is_coupon' =>  $item->attributes->product_is_coupon,
-                        // 'product_is_coupon_used' =>  $item->attributes->product_is_coupon_used,
-                    ];
-                    VendorOrderDetail::insert($orderdetail);
-
-                    $product = VendorProduct::find($item->id);
-                    $product->stock = $product->stock - $item->quantity;
-                    if ($product->stock <= 0) {
-                        $product->in_stock = 0;
-                    }
-                    $product->save();
-                }
-
-
-
-                $ordershippindetail = new  VendorOrderShippingDetail();
-                $ordershippindetail->vendor_order_id = $order->id;
-                $ordershippindetail->name = $request->name;
-                $ordershippindetail->email = $request->email;
-                $ordershippindetail->phone = $request->phone;
-                $ordershippindetail->address = $request->address;
-                $ordershippindetail->shipping_address = $request->shipping_address;
-                $ordershippindetail->other_information = $request->other;
-                $ordershippindetail->city_id = $request->city;
-                $ordershippindetail->street = $request->street;
-                $ordershippindetail->save();
-
-                $msg = 'New order has been placed';
-                $type = 4;
-                $link = 'admin/vendor/order/detail/' . $order->id;
-                $detail = 'New order is placed with order no#' . $order_no;
-                $admin = Admin::find(1);
-                $adminnotification = new AdminNotification($msg, $type, $link, $detail, 1);
-                Notification::send($admin, $adminnotification);
-
-                $link = 'vendor/order/detail/' . $order->id;
-                $user = User::find($sellerId);
-                $vendornotification = new VendorOrderNotification($msg, $type, $link, $detail);
-                Notification::send($user, $vendornotification);
-            }
-
-            if ($request->payment_by == '1') {
-                //if user selected payment by wallet
-                CustomHelper::orderWalletTrasection(Auth::guard('web')->user()->id, $request->totalpay);
-            }
-            if ($request->payment_by == '2') {
-                //if user selected payment by gift
-                CustomHelper::orderWalletGiftTrasection(Auth::guard('web')->user()->id, $request->totalpay);
-            }
-
-            DB::commit();
-            \Cart::session('vendor')->clear();
-
-            return true;
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-            return false;
-        }
-    }
-
     public static function checkOutForCart($type, $request)
     {
         $order_no = self::createNewOrderno();
@@ -511,7 +258,7 @@ class CartHelper
                 return false;
             }
         } else {
-            
+
             $attribute = $weight = $subtotal = $discount = 0;
             foreach (\Cart::session('normal')->getContent() as $item) {
                 $attribute = $attribute + $item->attributes->product_points;
@@ -519,7 +266,7 @@ class CartHelper
                 $discount = $discount + $item->attributes->product_discount;
                 $subtotal = $subtotal + $item->getPriceSum();
             }
-            
+
             $normalcustmoizedProduct = $discountcustmoizedProduct = false;
             \Cart::session('normal')
                 ->getContent()
@@ -533,9 +280,9 @@ class CartHelper
                 ? SettingHelper::getSettingValueBySLug('customized_shipping_charges')
                 : SettingHelper::getSettingValueBySLug('shipping_charges');
             $shippingcharges = ceil($weight) * $charges;
-           
+
             $totalpay = $subtotal + $shippingcharges;
-            
+
             $order = new Order();
             $order->order_no = $order_no;
             $order->user_id = Auth::guard('web')->user()->id;

@@ -33,7 +33,11 @@ class FrontController extends Controller
         $featureproduct = Product::where('is_feature', 1)
             ->where('is_active', 1)
             ->get();
-        $banner = Banner::where('type', 1)->get();
+        $banner = Banner::where('type', "homepage_slider")->where('title', "homepage_slider")->first();
+        $shop_banner = Banner::where('type', "home_page")->where('title', "shop_banner")->first();
+        $other_brand_banner = Banner::where('type', "home_page")->where('title', "other_brand_banner")->first();
+        $customize_banner = Banner::where('type', "home_page")->where('title', "customize_banner")->first();
+
         $newproduct = Product::orderBy('id', 'DESC')
             ->skip(0)
             ->take(8)
@@ -42,8 +46,11 @@ class FrontController extends Controller
 
         return view('welcome', [
             'featureproduct' => $featureproduct,
-            'banner' => $banner,
             'newproduct' => $newproduct,
+            'banner' => $banner,
+            'shop_banner' => $shop_banner,
+            'other_brand_banner' => $other_brand_banner,
+            'customize_banner' => $customize_banner,
         ]);
     }
 

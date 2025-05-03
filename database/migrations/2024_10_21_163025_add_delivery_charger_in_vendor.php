@@ -24,6 +24,7 @@ return new class extends Migration
     {
         Schema::table('vendors', function (Blueprint $table) {
             //
+            $table->dropColumn('delivery_charges');
         });
     }
 };

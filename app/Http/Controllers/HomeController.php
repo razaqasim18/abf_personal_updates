@@ -37,33 +37,33 @@ class HomeController extends Controller
         $pendingorder = Order::select(DB::raw('COUNT(id) as count'))->where('status', '0')->where('user_id', Auth::guard('web')->user()->id)->first();
         $pendingvendororder = VendorOrder::select(DB::raw('COUNT(id) as count'))->where('status', '0')->where('user_id', Auth::guard('web')->user()->id)->first();
         $pendingcombinedOrders  = $pendingorder->count + $pendingvendororder->count;
-        
+
         // order inprocess
         $inprocessorder = Order::select(DB::raw('COUNT(id) as count'))->where('status', '1')->where('user_id', Auth::guard('web')->user()->id)->first();
         $inprocessvendororder = VendorOrder::select(DB::raw('COUNT(id) as count'))->where('status', '1')->where('user_id', Auth::guard('web')->user()->id)->first();
         $inprocesscombinedOrders  = $inprocessorder->count + $inprocessvendororder->count;
-        
+
         // order approved
         $approvedorder = Order::select(DB::raw('COUNT(id) as count'))->where('status', '2')->where('user_id', Auth::guard('web')->user()->id)->first();
         $approvedvendororder = VendorOrder::select(DB::raw('COUNT(id) as count'))->where('status', '2')->where('user_id', Auth::guard('web')->user()->id)->first();
         $approvedcombinedOrders  = $approvedorder->count + $approvedvendororder->count;
-        
+
         // order delivered
         $deliveredorder = Order::select(DB::raw('COUNT(id) as count'))->where('status', '3')->where('user_id', Auth::guard('web')->user()->id)->first();
         $deliveredvendororder = VendorOrder::select(DB::raw('COUNT(id) as count'))->where('status', '3')->where('user_id', Auth::guard('web')->user()->id)->first();
         $deliveredcombinedOrders  = $deliveredorder->count + $deliveredvendororder->count;
-      
+
         // order cancelled
         $cancelledorder = Order::select(DB::raw('COUNT(id) as count'))->where('status', '-1')->where('user_id', Auth::guard('web')->user()->id)->first();
         $cancelledvendororder = VendorOrder::select(DB::raw('COUNT(id) as count'))->where('status', '-1')->where('user_id', Auth::guard('web')->user()->id)->first();
         $cancelledcombinedOrders  = $cancelledorder->count + $cancelledvendororder->count;
-     
-       // order total
+
+        // order total
         $totalorder = Order::select(DB::raw('COUNT(id) as count'))->where('user_id', Auth::guard('web')->user()->id)->first();
         $totalvendororder = VendorOrder::select(DB::raw('COUNT(id) as count'))->where('user_id', Auth::guard('web')->user()->id)->first();
         $totalcombinedOrders  = $totalorder->count + $totalvendororder->count;
-        
-            
+
+
         $order = [
             'pending' => $pendingcombinedOrders,
             'inprocess' => $inprocesscombinedOrders,
@@ -148,7 +148,7 @@ class HomeController extends Controller
                 ->whereMonth('wallet_transactions.created_at', $currentMonth)
                 ->first(),
         ];
-        $dashboardbanner = Banner::where('type', 0)->get();
+        $dashboardbanner = Banner::where('type', "dashboard_slider")->where('title', "dashboard_slider")->first();
         $myteam = User::select(DB::raw('COUNT(id) AS count'))
             ->where('sponserid', Auth::guard('web')->user()->id)
             ->first();

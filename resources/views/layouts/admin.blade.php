@@ -19,9 +19,11 @@
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <link rel='shortcut icon' type='image/x-icon'
         href=' {{ SettingHelper::getSettingValueBySLug('site_favicon') ? asset('uploads/setting/' . SettingHelper::getSettingValueBySLug('site_favicon')) : asset('img/favicon.ico') }}' />
-
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- for dynamic styling --}}
     @includeIf('include.style')
+    <base href="/laravel/abf_personal_updates/">
 </head>
 
 <body>
@@ -414,6 +416,69 @@
     <script>
         $(document).ready(function() {
 
+            Echo.private('adminchannel.1')
+                .notification((notification) => {
+
+                    // Increment unread counter
+                    let count = parseInt($('#countunreadnotification').text()) || 0;
+                    $('#countunreadnotification').text(count + 1);
+
+                    // Format timestamp
+                    const D = new Date();
+                    const hours = D.getHours();
+                    const minutes = D.getMinutes().toString().padStart(2, '0');
+                    const seconds = D.getSeconds().toString().padStart(2, '0');
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const formattedHours = hours % 12 || 12;
+
+                    const formattedDate =
+                        `${D.getDate()}-${D.getMonth() + 1}-${D.getFullYear()} ${formattedHours}:${minutes}:${seconds} ${ampm}`;
+
+                    // Build notification link
+                    const url = `${window.location.origin}/${notification.link}`;
+
+                    // Determine icon style
+                    const style = (notification.isvendor && notification.isvendor == "1") ?
+                        "bg-warning" :
+                        "bg-primary";
+
+                    // Determine icon based on type
+                    let icon = '';
+                    switch (notification.type) {
+                        case '1':
+                            icon = '<i class="fab fa-r-project"></i>';
+                            break;
+                        case '2':
+                            icon = '<i class="far fa-user"></i>';
+                            break;
+                        case '3':
+                            icon = '<i class="fab fa-servicestack"></i>';
+                            break;
+                        case '4':
+                            icon = '<i class="fas fa-shopping-cart"></i>';
+                            break;
+                        default:
+                            icon = '<i class="fas fa-code"></i>';
+                    }
+
+                    // Generate notification HTML
+                    const output = `
+            <a href="${url}" class="dropdown-item">
+                <span class="dropdown-item-icon ${style} text-white">
+                    ${icon}
+                </span>
+                <span class="dropdown-item-desc">
+                    ${notification.message}
+                    <span class="time">${formattedDate}</span>
+                </span>
+            </a>
+        `;
+
+                    // Append to dropdown
+                    $('#notificationList').prepend(output);
+                });
+
+
             getUnreadNotification();
 
             function getUnreadNotification() {
@@ -479,11 +544,12 @@
 
                             const unread = (element.read_at) ? 'dropdown-item-unread' : '';
                             const url = "{{ url('') }}" + "/" + elementdata.link;
-                            console.log(element.type );
+
                             output += '<a href="' + url + '" class="dropdown-item ' +
                                 unread + '">';
-                            const style = (elementdata.isvendor && elementdata.isvendor == "1") ? "bg-warning" : "bg-primary";  
-                            output += '<span class="dropdown-item-icon '+style+' text-white">';
+                            const style = (elementdata.isvendor && elementdata.isvendor == "1") ?
+                                "bg-warning" : "bg-primary";
+                            output += '<span class="dropdown-item-icon ' + style + ' text-white">';
                             const icon = '';
                             if (elementdata.type == '1') {
                                 output += '<i class = "fab fa-r-project" ></i>';

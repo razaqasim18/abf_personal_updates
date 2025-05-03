@@ -48,12 +48,23 @@ use Illuminate\Support\Facades\Auth;
 // * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
 //*    *    *    *    *    curl -s https://tryptu.digitallinkcard.xyz/public/schedule-run
 //*    *    *    *    *    curl -s https://tryptu.digitallinkcard.xyz/public/queue-work
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Hash;
+
+// Broadcast::routes();
+
+
+Route::get('/check', function () {
+
+    $admin = Admin::find(1);
+    $adminnotification = new AdminNotification("ss", "1", "link", "detail", 1, 1);
+    Notification::send($admin, $adminnotification);
+    // dd(Hash::make('admin'));
+});
 
 Route::get('/refresh-csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 })->name("refresh-csrf-token");
-
-Route::get('/check', function () {});
 
 Route::get('/user-psp/{id}', function ($userid) {
     //psp rewad

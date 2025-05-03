@@ -13,7 +13,8 @@ class Banner extends Model implements HasMedia
     use InteractsWithMedia;
 
     protected $fillable = [
-        'banner',
+        'title',
+        'type'
     ];
     public $timestamps = false;
 }

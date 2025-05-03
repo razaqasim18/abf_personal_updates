@@ -19,7 +19,7 @@ return new class extends Migration
             $table->tinyInteger('status')->default("1")->comment("0 deducted,1 added,2 commission");
             $table->string('detail')->nullable(true);
             $table->boolean('is_gift')->default("0")->comment("1 yes, 0 not");
-            $table->foreign('wallet_id')->references('id')->on('wallets')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('wallet_id')->references('id')->on('vendor_wallets')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('vendor_id')->references('id')->on('vendors')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamp('created_at')->useCurrent();

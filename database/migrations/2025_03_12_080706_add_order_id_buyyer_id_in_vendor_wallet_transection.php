@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::table('vendor_wallet_transactions', function (Blueprint $table) {
             //
-            $table->id();
+            // $table->id();
             $table->unsignedBigInteger('vendor_order_id')->nullable(true);
             $table->unsignedBigInteger('buyyer_id')->nullable(true);
-            
+
             $table->foreign('vendor_order_id')->references('id')->on('vendor_orders')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('buyyer_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });

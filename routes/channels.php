@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Admin;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +15,13 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
-});
+// Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+//     return (int) $user->id === (int) $id;
+// });
+
+
+Broadcast::routes(['middleware' => ['web', 'auth:admin']]);
+
+Broadcast::channel('adminchannel.{id}', function ($admin, $id) {
+    return (int) $admin->id === (int) $id;
+}, ['guards' => ['admin']]);

@@ -30,7 +30,7 @@ class VendorController extends Controller
         $currentYear = $currentDate->year;
         $currentMonth = $currentDate->month;
 
-        $dashboardbanner = Banner::where('type', 0)->get();
+        $dashboardbanner = Banner::where('type', "vendor_dashboard_slider")->where('title', "vendor_dashboard_slider")->first();
         $currentDate = Carbon::now();
         $currentYear = $currentDate->year;
         $currentMonth = $currentDate->month;

@@ -28,7 +28,7 @@
 @endsection
 
 @section('content')
-    @if (count($banner))
+    @if ($banner)
         <!-- Slider Area -->
         <section class="hero-slider" style="height: auto;">
             <!-- Single Slider -->
@@ -36,9 +36,9 @@
                 <div class="glide">
                     <div class="glide__track" data-glide-el="track">
                         <ul class="glide__slides">
-                            @foreach ($banner as $image)
+                            @foreach ($banner->getMedia('homepage_slider') as $image)
                                 <li class="glide__slide">
-                                    <img src="{{ $image->getFirstMediaUrl('images') }}" alt="{{ $image->name }}" />
+                                    <img src="{{ $image->getUrl() }}" alt="{{ $image->name }}" />
                                 </li>
                             @endforeach
                         </ul>
@@ -76,8 +76,14 @@
                 <div class="col-lg-4 col-md-6 col-12">
                     <div class="single-banner">
                         <a href="{{ route('shop') }}">
-                            <img src="{{ SettingHelper::getSettingValueBySLug('shop_banner') ? asset('uploads/setting') . '/' . SettingHelper::getSettingValueBySLug('shop_banner') : asset('eshop/images/cream1.jpeg') }}"
-                                alt="#">
+                            @php
+                                if ($shop_banner && $shop_banner->getFirstMediaUrl('home_page_shop_banner')) {
+                                    $shopbannerurl = $shop_banner->getFirstMediaUrl('home_page_shop_banner');
+                                } else {
+                                    $shopbannerurl = asset('eshop/images/cream1.jpeg');
+                                }
+                            @endphp
+                            <img src="{{ $shopbannerurl }}" alt="shope_banner">
                             Shop
                         </a>
                         <div class="content"></div>
@@ -88,8 +94,19 @@
                 <div class="col-lg-4 col-md-6 col-12">
                     <div class="single-banner">
                         <a href="{{ route('other.brand') }}">
-                            <img src="{{ SettingHelper::getSettingValueBySLug('other_brand_banner') ? asset('uploads/setting') . '/' . SettingHelper::getSettingValueBySLug('other_brand_banner') : asset('eshop/images/cream2.jpeg') }}"
-                                alt="otherbrand">
+                            @php
+                                if (
+                                    $other_brand_banner &&
+                                    $other_brand_banner->getFirstMediaUrl('home_page_other_brand_banner')
+                                ) {
+                                    $orherbrandbannerurl = $other_brand_banner->getFirstMediaUrl(
+                                        'home_page_other_brand_banner',
+                                    );
+                                } else {
+                                    $orherbrandbannerurl = asset('eshop/images/cream2.jpeg');
+                                }
+                            @endphp
+                            <img src="{{ $orherbrandbannerurl }}" alt="other_brand">
                             Other Brand
                         </a>
                         <div class="content"></div>
@@ -101,8 +118,19 @@
                 <div class="col-lg-4 col-12">
                     <div class="single-banner tab-height">
                         <a href="{{ route('customize') }}">
-                            <img src="{{ SettingHelper::getSettingValueBySLug('customize_banner') ? asset('uploads/setting') . '/' . SettingHelper::getSettingValueBySLug('customize_banner') : asset('eshop/images/cream3.jpeg') }}"
-                                alt="customized">
+                            @php
+                                if (
+                                    $customize_banner &&
+                                    $customize_banner->getFirstMediaUrl('home_page_customize_banner')
+                                ) {
+                                    $customizedbannerurl = $customize_banner->getFirstMediaUrl(
+                                        'home_page_customize_banner',
+                                    );
+                                } else {
+                                    $customizedbannerurl = asset('eshop/images/cream3.jpeg');
+                                }
+                            @endphp
+                            <img src="{{ $customizedbannerurl }}" alt="customized">
                             Custom Product
                         </a>
                         <div class="content"></div>

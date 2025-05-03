@@ -3,69 +3,78 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
-class AdminNotification extends Notification
+class AdminNotification extends Notification implements ShouldBroadcastNow
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
     public $msg;
     public $type;
     public $link;
     public $detail;
     public $isvendor;
-    public function __construct($msg, $type, $link, $detail, $isvendor = 0)
+    public $adminid;
+    public function __construct($msg, $type, $link, $detail, $isvendor = 0, $adminid = 1)
     {
         $this->msg = $msg;
-        $this->type = $type; // 1 request, 2 user,3 ticket,4 order
+        $this->type = $type; // 1 request, 2 user, 3 ticket, 4 order
         $this->link = $link;
         $this->detail = $detail;
         $this->isvendor = $isvendor;
+        $this->adminid = $adminid;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    // public function toMail(object $notifiable): MailMessage
-    // {
-    //     return (new MailMessage)
-    //         ->line('The introduction to the notification.')
-    //         ->action('Notification Action', url('/'))
-    //         ->line('Thank you for using our application!');
-    // }
     public function toDatabase($notifiable)
     {
         return [
             'message' => $this->msg,
-            'type' => $this->type, // 1 request, 2 user,3 ticket,4 order
+            'type' => $this->type,
             'link' => $this->link,
             'detail' => $this->detail,
             'isvendor' => $this->isvendor,
         ];
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => $this->msg,
+            'type' => $this->type,
+            'link' => $this->link,
+            'detail' => $this->detail,
+            'isvendor' => $this->isvendor,
         ];
+    }
+
+    public function broadcastOn()
+    {
+        return new PrivateChannel("adminchannel.{$this->adminid}");
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'message' => $this->msg,
+            'type' => $this->type,
+            'link' => $this->link,
+            'detail' => $this->detail,
+            'isvendor' => $this->isvendor,
+        ];
+    }
+
+    public function broadcastAs()
+    {
+        return 'admin-notification'; // Explicit event name
     }
 }

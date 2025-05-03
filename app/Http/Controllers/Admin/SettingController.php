@@ -7,7 +7,7 @@ use App\Models\Banner;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SettingController extends Controller
 {
@@ -187,7 +187,7 @@ class SettingController extends Controller
         $validator = Validator::make($request->all(), [
             'epin_charges' => 'required|integer|min:0',
             'epin_panel_charges' => 'required|integer|min:0',
-            'transection_charges' => 'required|integer|min:0', 
+            'transection_charges' => 'required|integer|min:0',
             'vendor_transection_charges' => 'required|integer|min:0',
             'gst_charges' => 'required',
             'shipping_charges' => 'required|integer|min:0',
@@ -222,7 +222,7 @@ class SettingController extends Controller
             ['setting_slug' => 'transection_charges'],
             ['setting_value' => $request->transection_charges]
         );
-        
+
         $setting = Setting::updateOrCreate(
             ['setting_slug' => 'vendor_transection_charges'],
             ['setting_value' => $request->vendor_transection_charges]
@@ -296,148 +296,167 @@ class SettingController extends Controller
 
     public function bannerSetting()
     {
-        $banner = Banner::where('type', 1)->get();
-        $dashboardbanner = Banner::where('type', 0)->get();
-        $vendorbanner = Banner::where('type', 2)->get();
-        return view('admin.setting.banner', ["banner" => $banner, 'dashboardbanner' => $dashboardbanner, 'vendorbanner' => $vendorbanner]);
+        $banner = Banner::where('type', "homepage_slider")->where('title', "homepage_slider")->first();
+        $dashboardbanner = Banner::where('type', "dashboard_slider")->where('title', "dashboard_slider")->first();
+        $vendorbanner = Banner::where('type', "vendor_dashboard_slider")->where('title', "vendor_dashboard_slider")->first();
+
+        $shopbanner = Banner::where('type', "home_page")->where('title', "shop_banner")->first();
+        $otherbanner = Banner::where('type', "home_page")->where('title', "other_brand_banner")->first();
+        $customizebanner = Banner::where('type', "home_page")->where('title', "customize_banner")->first();
+
+        return view('admin.setting.banner', [
+            "banner" => $banner,
+            'dashboardbanner' => $dashboardbanner,
+            'vendorbanner' => $vendorbanner,
+            'shopbanner' => $shopbanner,
+            'otherbanner' => $otherbanner,
+            'customizebanner' => $customizebanner,
+
+        ]);
     }
 
     public function saveOtherBannerSetting(Request $request)
     {
-        $shop_banner = null;
-        if (!empty($request->file('shop_banner'))) {
-            $uploadedFile = $request->file('shop_banner');
-            $shop_banner = "shop_banner" . time() . '.' . $uploadedFile->extension();
+        // ✅ Validate all banner images in one go
+        $request->validate([
+            'shop_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'other_brand_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'customize_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-            // Move the uploaded file to the specified directory
-            $uploadedFile->move(base_path('uploads/setting'), $shop_banner);
-        } else {
-            $shop_banner = $request->shopbannerimage;
-        }
-
-        if ($shop_banner) {
-            $setting = Setting::updateOrCreate(
-                ['setting_slug' => 'shop_banner'],
-                ['setting_value' => $shop_banner]
+        // ✅ Handle shop_banner
+        if ($request->hasFile('shop_banner')) {
+            $shopBanner = Banner::firstOrCreate(
+                ['title' => 'shop_banner', 'type' => 'home_page'],
+                ['title' => 'shop_banner', 'type' => 'home_page']
             );
+            $shopBanner->addMediaFromRequest('shop_banner')->toMediaCollection('home_page_shop_banner');
         }
 
-        $other_brand_banner = null;
-        if (!empty($request->file('other_brand_banner'))) {
-            $other_brand_banner = "other_brand_banner" . time() . "." . $request->file('other_brand_banner')->extension();
-            $request
-                ->file('other_brand_banner')
-                ->move(base_path('uploads/setting'), $other_brand_banner);
-        } else {
-            $other_brand_banner = $request->otherbrandbannerimage;
-        }
-
-        if ($other_brand_banner) {
-            $setting = Setting::updateOrCreate(
-                ['setting_slug' => 'other_brand_banner'],
-                ['setting_value' => $other_brand_banner]
+        // ✅ Handle other_brand_banner
+        if ($request->hasFile('other_brand_banner')) {
+            $otherBrandBanner = Banner::firstOrCreate(
+                ['title' => 'other_brand_banner', 'type' => 'home_page'],
+                ['title' => 'other_brand_banner', 'type' => 'home_page']
             );
+            $otherBrandBanner->addMediaFromRequest('other_brand_banner')->toMediaCollection('home_page_other_brand_banner');
         }
 
-        $customize_banner = null;
-        if (!empty($request->file('customize_banner'))) {
-            $customize_banner = "cutomize" . time() . "." . $request->file('customize_banner')->extension();
-            $request
-                ->file('customize_banner')
-                ->move(base_path('uploads/setting'), $customize_banner);
-        } else {
-            $customize_banner = $request->customizebannerimage;
-        }
-
-        if ($customize_banner) {
-            $setting = Setting::updateOrCreate(
-                ['setting_slug' => 'customize_banner'],
-                ['setting_value' => $customize_banner]
+        // ✅ Handle customize_banner
+        if ($request->hasFile('customize_banner')) {
+            $customizeBanner = Banner::firstOrCreate(
+                ['title' => 'customize_banner', 'type' => 'home_page'],
+                ['title' => 'customize_banner', 'type' => 'home_page']
             );
+            $customizeBanner->addMediaFromRequest('customize_banner')->toMediaCollection('home_page_customize_banner');
         }
-        if ($setting) {
-            return redirect()
-                ->route('admin.setting.banner')
-                ->with('othersuccess', 'Data is updated successfully');
-        } else {
-            return redirect()
-                ->route('admin.setting.banner')
-                ->with('othererror', 'Something went wrong');
-        }
+
+        return redirect()
+            ->route('admin.setting.banner')
+            ->with('othersuccess', 'Banners updated successfully');
     }
 
     public function saveBannerSetting(Request $request)
     {
+        // Validate uploaded images
+        $request->validate([
+            'file.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
+        // Check if homepage_slider banner exists
+        $banner = Banner::where('type', 'homepage_slider')->first();
+
+        // If not, create it
+        if (!$banner) {
+            $banner = new Banner();
+            $banner->title = 'homepage_slider';
+            $banner->type = 'homepage_slider';
+            $banner->save();
+        }
+
+        // Attach media files
         if ($request->hasFile('file')) {
-            $i = 1;
             foreach ($request->file('file') as $file) {
-                $banner = new Banner();
-                $image = time() . $i++ . '.' . $file->extension();
-                $banner->banner = $image;
-                $banner->type = 1;
-                $banner->save();
-                $media = $banner->addMedia($file)->toMediaCollection('images');
+                $banner->addMedia($file)->toMediaCollection('homepage_slider');
             }
         }
-        return redirect()->route('admin.setting.banner')->with('successs', 'Data is saved successfully');
+
+        return redirect()->route('admin.setting.banner')->with('success', 'Images added to Homepage Slider successfully');
     }
 
     public function saveVendorBannerSetting(Request $request)
     {
+        // Validate uploaded images
+        $request->validate([
+            'file.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
+        // Check if dashboard_slider banner exists
+        $banner = Banner::where('type', 'vendor_dashboard_slider')->first();
+
+        // If not, create it
+        if (!$banner) {
+            $banner = new Banner();
+            $banner->title = 'vendor_dashboard_slider';
+            $banner->type = 'vendor_dashboard_slider';
+            $banner->save();
+        }
+
+        // Attach media files
         if ($request->hasFile('file')) {
-            $i = 1;
             foreach ($request->file('file') as $file) {
-                $banner = new Banner();
-                $image = time() . $i++ . '.' . $file->extension();
-                $banner->banner = $image;
-                $banner->type = 2;
-                $banner->save();
-                $media = $banner->addMedia($file)->toMediaCollection('images');
+                $banner->addMedia($file)->toMediaCollection('vendor_dashboard_slider');
             }
         }
-        return redirect()->route('admin.setting.banner')->with('successs', 'Data is saved successfully');
+
+        return redirect()->route('admin.setting.banner')->with('vendorsuccess', 'Images added to Vendor Dashboard Slider successfully');
     }
 
     public function saveDashboardBannerSetting(Request $request)
     {
+        // Validate uploaded images
+        $request->validate([
+            'files.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
+        // Check if dashboard_slider banner exists
+        $banner = Banner::where('type', 'dashboard_slider')->first();
+
+        // If not, create it
+        if (!$banner) {
+            $banner = new Banner();
+            $banner->title = 'dashboard_slider';
+            $banner->type = 'dashboard_slider';
+            $banner->save();
+        }
+
+        // Attach media files
         if ($request->hasFile('files')) {
-            $i = 1;
             foreach ($request->file('files') as $file) {
-                $banner = new Banner();
-                $image = time() . $i++ . '.' . $file->extension();
-                $banner->banner = $image;
-                $banner->type = 0;
-                $banner->save();
-                $media = $banner->addMedia($file)->toMediaCollection('images');
+                $banner->addMedia($file)->toMediaCollection('dashboard_slider');
             }
         }
-        return redirect()->route('admin.setting.banner')->with('dashboardsuccess', 'Data is saved successfully');
+
+        return redirect()->route('admin.setting.banner')->with('dashboardsuccess', 'Images added to User Dashboard Slider successfully');
     }
 
-    public function deleteMedia($postid)
+    public function deleteMedia($mediaId)
     {
-        // Retrieve the model instance associated with the media file
-        $banner = Banner::destroy($postid); // Replace `Post` with your actual model class and `1` with the ID of the post
-        // Retrieve the media instance to be deleted by its ID
-        // $mediaId = 1; // Replace `1` with the ID of the media
-        // $media = $product->getMedia('images')->find($mediaId); // Replace `media_collection` with your media collection name
-        if ($banner) {
-            // Delete the media file, including its storage file
-            // $media->delete();
-            // $product->destroy();
-            $json = [
+        $media = Media::find($mediaId);
+
+        if ($media) {
+            // This deletes the file from storage and the database entry
+            $media->delete();
+
+            return response()->json([
                 'type' => 1,
-                'msg' => 'Data is deleted successfully',
-            ];
-        } else {
-            $json = [
-                'type' => 0,
-                'msg' => 'Something went wrong',
-            ];
+                'msg' => 'Media deleted successfully',
+            ]);
         }
-        return response()->json($json);
+
+        return response()->json([
+            'type' => 0,
+            'msg' => 'Media not found or already deleted',
+        ]);
     }
 }
