@@ -49,7 +49,8 @@
                 </div>
                 <ul class="navbar-nav navbar-right">
                     <li class="dropdown dropdown-list-toggle">
-                        <a href="#" data-toggle="dropdown" class="nav-link notification-toggle nav-link-lg">
+                        <a href="javascript:void(0)" data-toggle="dropdown"
+                            class="nav-link notification-toggle nav-link-lg">
                             <i data-feather="bell" class="bell"></i>
                             <span class="badge headerBadge1 bg-info" id="countunreadnotification" style="">
                             </span>
@@ -416,9 +417,10 @@
     <script>
         $(document).ready(function() {
 
+
+            // document.addEventListener('DOMContentLoaded', function() {
             Echo.private('adminchannel.1')
                 .notification((notification) => {
-
                     // Increment unread counter
                     let count = parseInt($('#countunreadnotification').text()) || 0;
                     $('#countunreadnotification').text(count + 1);
@@ -477,6 +479,7 @@
                     // Append to dropdown
                     $('#notificationList').prepend(output);
                 });
+            // });
 
 
             getUnreadNotification();

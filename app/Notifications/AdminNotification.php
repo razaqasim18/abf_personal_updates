@@ -3,12 +3,9 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Notification;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 class AdminNotification extends Notification implements ShouldBroadcastNow
 {
@@ -19,19 +16,22 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
     public $link;
     public $detail;
     public $isvendor;
-    public $adminid;
-    public function __construct($msg, $type, $link, $detail, $isvendor = 0, $adminid = 1)
+    public $adminId;
+
+    public function __construct($msg, $type, $link, $detail, $isvendor = 0)
     {
         $this->msg = $msg;
-        $this->type = $type; // 1 request, 2 user, 3 ticket, 4 order
+        $this->type = $type;
         $this->link = $link;
         $this->detail = $detail;
         $this->isvendor = $isvendor;
-        $this->adminid = $adminid;
     }
 
     public function via(object $notifiable): array
     {
+        // Assign admin ID from notifiable
+        $this->adminId = $notifiable->id;
+
         return ['database', 'broadcast'];
     }
 
@@ -39,7 +39,7 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
     {
         return [
             'message' => $this->msg,
-            'type' => $this->type,
+            'notify_type' => $this->type,
             'link' => $this->link,
             'detail' => $this->detail,
             'isvendor' => $this->isvendor,
@@ -50,7 +50,7 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
     {
         return [
             'message' => $this->msg,
-            'type' => $this->type,
+            'notify_type' => $this->type,
             'link' => $this->link,
             'detail' => $this->detail,
             'isvendor' => $this->isvendor,
@@ -59,22 +59,17 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
 
     public function broadcastOn()
     {
-        return new PrivateChannel("adminchannel.{$this->adminid}");
+        return new PrivateChannel("adminchannel.{$this->adminId}");
     }
 
     public function broadcastWith()
     {
         return [
             'message' => $this->msg,
-            'type' => $this->type,
+            'notify_type' => $this->type,
             'link' => $this->link,
             'detail' => $this->detail,
             'isvendor' => $this->isvendor,
         ];
-    }
-
-    public function broadcastAs()
-    {
-        return 'admin-notification'; // Explicit event name
     }
 }

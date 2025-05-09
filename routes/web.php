@@ -56,9 +56,11 @@ use Illuminate\Support\Facades\Hash;
 
 Route::get('/check', function () {
 
+
     $admin = Admin::find(1);
-    $adminnotification = new AdminNotification("ss", "1", "link", "detail", 1, 1);
+    $adminnotification = new AdminNotification("ss", "1", "link", "detail", 1);
     Notification::send($admin, $adminnotification);
+    echo "done";
     // dd(Hash::make('admin'));
 });
 
@@ -139,10 +141,11 @@ Route::get('/migrate-rollback', function () {
 });
 
 Route::get('/cache-clear', function () {
-    Artisan::call('config:cache');
+    Artisan::call('config:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
     Artisan::call('cache:clear');
     Artisan::call('optimize:clear');
-    Artisan::call('route:clear');
     echo "cache-clear";
 });
 
