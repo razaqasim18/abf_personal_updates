@@ -14,11 +14,12 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components.css') }}">
     @yield('style')
-    <!-- Custom style CSS -->
+    <!-- Custom style CSS cc-->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <link rel='shortcut icon' type='image/x-icon'
         href="{{ VendorHelper::getVendorLogo() != '' ? VendorHelper::getVendorLogo() : asset('img/logo.png') }}" />
-
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- for dynamic styling --}}
     @includeIf('include.vendor_style')
 </head>
@@ -209,16 +210,18 @@
             <!-- Main Content -->
             @yield('content')
 
+            <footer class="main-footer">
+                <div class="footer-left">
+                    <a href="https://trylotech.com">Trylotech</a></a>
+                </div>
+                <div class="footer-right">
+                </div>
+            </footer>
         </div>
-        <footer class="main-footer">
-            <div class="footer-left">
-                <a href="https://trylotech.com">Trylotech</a></a>
-            </div>
-            <div class="footer-right">
-            </div>
-        </footer>
+
+        <div id="sound"></div>
     </div>
-    </div>
+
     <!-- General JS Scripts -->
     <script src="{{ asset('js/app.min.js') }}"></script>
     <script src="{{ asset('bundles/select2/dist/js/select2.full.min.js') }}"></script>
@@ -235,6 +238,89 @@
     <script>
         $(document).ready(function() {
 
+            function playNotification() {
+                // inject audio element
+                document.getElementById("sound").innerHTML =
+                    '<audio id="notifyAudio" autoplay>' +
+                    '<source src="{{ asset('sounds/notification.mp3') }}" type="audio/mpeg">' +
+                    '</audio>';
+
+                // get the new audio element
+                let audio = document.getElementById("notifyAudio");
+
+                // try to play it
+                if (audio) {
+                    audio.play().catch(err => {
+                        console.log("Autoplay blocked:", err);
+                    });
+                }
+            }
+
+            // document.addEventListener('DOMContentLoaded', function() {
+            Echo.private(`vendorchannel.{{ auth()->guard('web')->user()->id }}`)
+                .listen('.vendor.notification', (notification) => {
+
+                    playNotification();
+
+                    // Increment unread counter
+                    let count = parseInt($('#countunreadnotification').text()) || 0;
+                    $('#countunreadnotification').text(count + 1);
+
+                    // Format timestamp
+                    const D = new Date();
+                    const hours = D.getHours();
+                    const minutes = D.getMinutes().toString().padStart(2, '0');
+                    const seconds = D.getSeconds().toString().padStart(2, '0');
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const formattedHours = hours % 12 || 12;
+
+                    const formattedDate =
+                        `${D.getDate()}-${D.getMonth() + 1}-${D.getFullYear()} ${formattedHours}:${minutes}:${seconds} ${ampm}`;
+
+                    // Build notification link
+                    const url = `${window.location.origin}/${notification.link}`;
+
+                    // Determine icon style
+                    const style = (notification.isvendor && notification.isvendor == "1") ?
+                        "bg-warning" :
+                        "bg-primary";
+
+                    // Determine icon based on type
+                    let icon = '';
+                    switch (notification.type) {
+                        case '1':
+                            icon = '<i class="fab fa-r-project"></i>';
+                            break;
+                        case '2':
+                            icon = '<i class="far fa-user"></i>';
+                            break;
+                        case '3':
+                            icon = '<i class="fab fa-servicestack"></i>';
+                            break;
+                        case '4':
+                            icon = '<i class="fas fa-shopping-cart"></i>';
+                            break;
+                        default:
+                            icon = '<i class="fas fa-code"></i>';
+                    }
+
+                    // Generate notification HTML
+                    const output = `
+            <a href="${url}" class="dropdown-item">
+                <span class="dropdown-item-icon ${style} text-white">
+                    ${icon}
+                </span>
+                <span class="dropdown-item-desc">
+                    ${notification.message}
+                    <span class="time">${formattedDate}</span>
+                </span>
+            </a>
+        `;
+
+                    // Append to dropdown
+                    $('#notificationList').prepend(output);
+                });
+            // });
 
 
             getUnreadNotification();
@@ -257,7 +343,8 @@
                     success: function(response) {
                         console.log(response.notifications);
                         let notifications = response.notifications;
-                        $("span#countunreadnotification").html(response.count ? response.count : 0)
+                        $("span#countunreadnotification").html(response.count ? response
+                            .count : 0)
                     }
                 });
             }
@@ -297,15 +384,18 @@
                             // Convert hours to 12-hour format
                             const formattedHours = hours % 12 || 12;
 
-                            const formattedDate = D.getDate() + "-" + (D.getMonth() + 1) + "-" + D
-                                .getFullYear() + " " + formattedHours + ":" + minutes + ":" + seconds +
+                            const formattedDate = D.getDate() + "-" + (D.getMonth() + 1) +
+                                "-" + D
+                                .getFullYear() + " " + formattedHours + ":" + minutes +
+                                ":" + seconds +
                                 " " + ampm;
 
                             const unread = (element.read_at) ? 'dropdown-item-unread' : '';
                             const url = "{{ url('') }}" + "/" + elementdata.link;
                             output += '<a href="' + url + '" class="dropdown-item ' +
                                 unread + '">';
-                            output += '<span class="dropdown-item-icon bg-primary text-white">';
+                            output +=
+                                '<span class="dropdown-item-icon bg-primary text-white">';
                             const icon = '';
                             if (element.type) {
                                 output += '<i class = "fab fa-r-project" ></i>';
@@ -318,13 +408,15 @@
                             } else {
                                 output += '<i class = "fas fa-code" ></i>';
                             }
-                            output += '</span> <span class="dropdown-item-desc">' + elementdata.message;
+                            output += '</span> <span class="dropdown-item-desc">' +
+                                elementdata.message;
                             output += '<span class="time">' + formattedDate +
                                 '</span></span></a>';
                         }
 
                         $("div#notificationList").html(output)
-                        $("span#countunreadnotification").html(response.count ? response.count : 0)
+                        $("span#countunreadnotification").html(response.count ? response
+                            .count : 0)
                     }
                 });
             }
@@ -350,6 +442,7 @@
                     }
                 });
             }
+
         });
     </script>
 

@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'isvendorpayment' => \App\Http\Middleware\IsVendorPayment::class,
         'isvendor' => \App\Http\Middleware\IsVendor::class,
         'isvendorblocked' => \App\Http\Middleware\IsVendorBlocked::class,
+        'broadcastauth' => \App\Http\Middleware\BroadcastAuthMiddleware::class,
     ];
 }

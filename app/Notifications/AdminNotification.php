@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Admin;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Notification;
@@ -16,9 +17,9 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
     public $link;
     public $detail;
     public $isvendor;
-    public $adminId;
 
-    public function __construct($msg, $type, $link, $detail, $isvendor = 0)
+
+    public function __construct($msg, $type, $link, $detail, $isvendor = 0, public Admin $admin)
     {
         $this->msg = $msg;
         $this->type = $type;
@@ -29,40 +30,35 @@ class AdminNotification extends Notification implements ShouldBroadcastNow
 
     public function via(object $notifiable): array
     {
-        // Assign admin ID from notifiable
-        $this->adminId = $notifiable->id;
-
         return ['database', 'broadcast'];
     }
 
     public function toDatabase($notifiable)
     {
-        return [
-            'message' => $this->msg,
-            'notify_type' => $this->type,
-            'link' => $this->link,
-            'detail' => $this->detail,
-            'isvendor' => $this->isvendor,
-        ];
+        return $this->payload();
     }
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'message' => $this->msg,
-            'notify_type' => $this->type,
-            'link' => $this->link,
-            'detail' => $this->detail,
-            'isvendor' => $this->isvendor,
-        ];
+        return $this->payload();
     }
 
     public function broadcastOn()
     {
-        return new PrivateChannel("adminchannel.{$this->adminId}");
+        return new PrivateChannel("adminchannel.{$this->admin->id}");
     }
 
     public function broadcastWith()
+    {
+        return $this->payload();
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'admin.notification';
+    }
+
+    protected function payload(): array
     {
         return [
             'message' => $this->msg,

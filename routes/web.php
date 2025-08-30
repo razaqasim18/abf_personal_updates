@@ -15,6 +15,7 @@ use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Notifications\AdminNotification;
 use App\Notifications\EpinRequestApprovedNotification;
+use App\Notifications\VendorOrderNotification;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -55,13 +56,21 @@ use Illuminate\Support\Facades\Hash;
 
 
 Route::get('/check', function () {
-
-
     $admin = Admin::find(1);
-    $adminnotification = new AdminNotification("ss", "1", "link", "detail", 1);
+    $adminnotification = new AdminNotification("message", "1", "link", "detail", 1, Admin::find(1));
     Notification::send($admin, $adminnotification);
+
+    $user = User::find(1107);
+    $usernotification = new VendorOrderNotification("ss", "1", "link", "detail",  User::find(1107));
+    Notification::send($user, $usernotification);
     echo "done";
-    // dd(Hash::make('admin'));
+});
+
+Route::get('/debug-auth', function () {
+    return [
+        'user' => auth('web')->user(),
+        'admin' => auth('admin')->user(),
+    ];
 });
 
 Route::get('/refresh-csrf-token', function () {
@@ -141,6 +150,7 @@ Route::get('/migrate-rollback', function () {
 });
 
 Route::get('/cache-clear', function () {
+
     Artisan::call('config:clear');
     Artisan::call('route:clear');
     Artisan::call('view:clear');

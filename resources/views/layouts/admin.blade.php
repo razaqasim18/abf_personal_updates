@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components.css') }}">
     @yield('style')
-    <!-- Custom style CSS -->
+    <!-- Custom style CSS ad-->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <link rel='shortcut icon' type='image/x-icon'
         href=' {{ SettingHelper::getSettingValueBySLug('site_favicon') ? asset('uploads/setting/' . SettingHelper::getSettingValueBySLug('site_favicon')) : asset('img/favicon.ico') }}' />
@@ -23,7 +23,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- for dynamic styling --}}
     @includeIf('include.style')
-    <base href="/laravel/abf_personal_updates/">
 </head>
 
 <body>
@@ -389,7 +388,6 @@
             <!-- Main Content -->
             @yield('content')
 
-
             <footer class="main-footer">
                 <div class="footer-left">
                     <a href="https://trylotech.com">Trylotech</a></a>
@@ -397,8 +395,10 @@
                 <div class="footer-right">
                 </div>
             </footer>
+            <div id="sound"></div>
         </div>
     </div>
+
     <!-- General JS Scripts -->
     <script src="{{ asset('js/app.min.js') }}"></script>
     <script src="{{ asset('bundles/select2/dist/js/select2.full.min.js') }}"></script>
@@ -417,10 +417,30 @@
     <script>
         $(document).ready(function() {
 
+            function playNotification() {
+                // inject audio element
+                document.getElementById("sound").innerHTML =
+                    '<audio id="notifyAudio" autoplay>' +
+                    '<source src="{{ asset('sounds/notification.mp3') }}" type="audio/mpeg">' +
+                    '</audio>';
+
+                // get the new audio element
+                let audio = document.getElementById("notifyAudio");
+
+                // try to play it
+                if (audio) {
+                    audio.play().catch(err => {
+                        console.log("Autoplay blocked:", err);
+                    });
+                }
+            }
 
             // document.addEventListener('DOMContentLoaded', function() {
-            Echo.private('adminchannel.1')
-                .notification((notification) => {
+            Echo.private(`adminchannel.{{ auth()->guard('admin')->user()->id }}`)
+                .listen('.admin.notification', (notification) => {
+
+                    playNotification();
+
                     // Increment unread counter
                     let count = parseInt($('#countunreadnotification').text()) || 0;
                     $('#countunreadnotification').text(count + 1);
@@ -597,6 +617,7 @@
                     }
                 });
             }
+
         });
     </script>
 </body>

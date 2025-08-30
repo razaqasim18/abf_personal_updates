@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('BROADCAST_DRIVER', 'null'),
+    'default' => env('BROADCAST_DRIVER', 'reverb'),
 
     /*
     |--------------------------------------------------------------------------
@@ -37,10 +37,14 @@ return [
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
                 'host' => env('REVERB_SERVER_HOST', '127.0.0.1'),
-                'port' => env('REVERB_SERVER_PORT', 8081),
+                'port' => env('REVERB_SERVER_PORT', 6001),
                 'scheme' => 'http',
             ],
+            'auth' => [
+                'guard' => 'admin', // ✅ correct place for specifying guard
+            ],
         ],
+
 
         'pusher' => [
             'driver' => 'pusher',
@@ -48,7 +52,7 @@ return [
             'secret' => env('PUSHER_APP_SECRET'),
             'app_id' => env('PUSHER_APP_ID'),
             'options' => [
-                'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER', 'mt1').'.pusher.com',
+                'host' => env('PUSHER_HOST') ?: 'api-' . env('PUSHER_APP_CLUSTER', 'mt1') . '.pusher.com',
                 'port' => env('PUSHER_PORT', 443),
                 'scheme' => env('PUSHER_SCHEME', 'https'),
                 'encrypted' => true,

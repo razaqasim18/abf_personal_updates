@@ -19,9 +19,20 @@ use Illuminate\Support\Facades\Log;
 //     return (int) $user->id === (int) $id;
 // });
 
+// old once working
+// Broadcast::routes(['middleware' => ['web', 'auth:admin']]);
 
-Broadcast::routes(['middleware' => ['web', 'auth:admin']]);
+// Broadcast::channel('adminchannel.{id}', function ($admin, $id) {
+//     return (int) $admin->id === (int) $id;
+// }, ['guards' => ['admin']]);
 
-Broadcast::channel('adminchannel.{id}', function ($admin, $id) {
-    return (int) $admin->id === (int) $id;
-}, ['guards' => ['admin']]);
+
+
+Broadcast::channel('vendorchannel.{id}', function ($user, $id) {
+    Log::info("Auth attempt for user channel: user={$user->id}, param={$id}");
+    return $user instanceof \App\Models\User && $user->id == $id;
+});
+Broadcast::channel('adminchannel.{id}', function ($user, $id) {
+    // Log::info("Auth attempt for admin channel: admin={$user->id}, param={$id}");
+    return $user instanceof \App\Models\Admin && $user->id == $id;
+});

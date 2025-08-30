@@ -231,12 +231,12 @@ class CartHelper
                     $link = 'admin/vendor/order/detail/' . $order->id;
                     $detail = 'New order is placed with order no#' . $order_no;
                     $admin = Admin::find(1);
-                    $adminnotification = new AdminNotification($msg, $type, $link, $detail, 1);
+                    $adminnotification = new AdminNotification($msg, $type, $link, $detail, 1, Admin::find(1));
                     Notification::send($admin, $adminnotification);
 
                     $link = 'vendor/order/detail/' . $order->id;
                     $user = User::find($sellerId);
-                    $vendornotification = new VendorOrderNotification($msg, $type, $link, $detail);
+                    $vendornotification = new VendorOrderNotification($msg, $type, $link, $detail, $user);
                     Notification::send($user, $vendornotification);
                 }
 
@@ -382,7 +382,7 @@ class CartHelper
                 $link = 'admin/order/detail/' . $order->id;
                 $detail = 'New order is placed with order no#' . $order_no;
                 $admin = Admin::find(1);
-                $adminnotification = new AdminNotification($msg, $type, $link, $detail);
+                $adminnotification = new AdminNotification($msg, $type, $link, $detail, 0, Admin::find(1));
                 Notification::send($admin, $adminnotification);
                 Session::forget('coupon_discount');
                 return true;
